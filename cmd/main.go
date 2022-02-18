@@ -40,7 +40,7 @@ func main() {
 	graphProblem := pixelsToGraph(pixels)
 
 	fmt.Println("Solving graph...")
-	solution, err := algos.GraphDFS(graphProblem)
+	solution, err := algos.GraphBFS(graphProblem)
 	if err != nil {
 		log.Fatal(err)
 	}
