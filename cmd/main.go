@@ -16,6 +16,14 @@ import (
 
 func main() {
 	mazeName := flag.String("maze", "braid200.png", "specify maze name")
+	searchAlgo := flag.String("algo", "dfs", "specify search algorithm")
+	flag.Parse()
+
+	algorithm, err := algos.AlgoFromString(*searchAlgo)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	image.RegisterFormat("png", "png", png.Decode, png.DecodeConfig)
 
 	fmt.Println("Opening image...")
@@ -40,7 +48,7 @@ func main() {
 	graphProblem := pixelsToGraph(pixels)
 
 	fmt.Println("Solving graph...")
-	solution, err := algos.GraphBFS(graphProblem)
+	solution, err := algos.GraphSeach(graphProblem, algorithm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -64,12 +72,10 @@ func writeSolutionToFile(img image.Image, solution []*problems.Node) {
 
 		if xStart == xEnd {
 			for y := yStart; y <= yEnd; y++ {
-				// img.(*image.RGBA).SetRGBA(xStart, y, pathColor)
 				img.(draw.Image).Set(xStart, y, pathColor)
 			}
 		} else {
 			for x := xStart; x <= xEnd; x++ {
-				// img.(*image.RGBA).SetRGBA(x, yStart, pathColor)
 				img.(draw.Image).Set(x, yStart, pathColor)
 			}
 		}

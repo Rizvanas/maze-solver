@@ -48,22 +48,8 @@ func SearchStateSpace(problem problems.Problem, algo Algorithm) (map[string]prob
 	return explored, nil
 }
 
-func GraphDFS(problem problems.Problem) ([]*problems.Node, error) {
-	explored, err := SearchStateSpace(problem, DEPTH_FIRST_SEARCH)
-	if err != nil {
-		return nil, err
-	}
-
-	solution, err := getSolutionNodes(problem, explored)
-	if err != nil {
-		return nil, err
-	}
-
-	return solution, nil
-}
-
-func GraphBFS(problem problems.Problem) ([]*problems.Node, error) {
-	explored, err := SearchStateSpace(problem, BREADTH_FIRST_SEARCH)
+func GraphSeach(problem problems.Problem, algo Algorithm) ([]*problems.Node, error) {
+	explored, err := SearchStateSpace(problem, algo)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +100,19 @@ const (
 	ASTAR_SEARCH         Algorithm = 3
 )
 
+func (a Algorithm) String() string {
+	switch a {
+	case DEPTH_FIRST_SEARCH:
+		return "dfs"
+	case BREADTH_FIRST_SEARCH:
+		return "bfs"
+	case ASTAR_SEARCH:
+		return "astar"
+	default:
+		return ""
+	}
+}
+
 func addToFringe(fringe *[]problems.State, state problems.State) []problems.State {
 	return append(*fringe, state)
 }
@@ -147,5 +146,16 @@ func peekFringe(fringe []problems.State, algo Algorithm) (problems.State, error)
 		return fringe[0], nil
 	default:
 		return nil, errors.New("ASTAR_SEARCH fringe not yet implemented")
+	}
+}
+
+func AlgoFromString(str string) (Algorithm, error) {
+	switch str {
+	case DEPTH_FIRST_SEARCH.String():
+		return DEPTH_FIRST_SEARCH, nil
+	case BREADTH_FIRST_SEARCH.String():
+		return BREADTH_FIRST_SEARCH, nil
+	default:
+		return 0, errors.New("algorithm by this name not found")
 	}
 }
