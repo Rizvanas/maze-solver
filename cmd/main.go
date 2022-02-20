@@ -14,6 +14,7 @@ import (
 	"example.com/maze-solver/pkg/problems"
 )
 
+// programos entry point (įeigos taškas)
 func main() {
 	mazeName := flag.String("maze", "braid200.png", "specify maze name")
 	searchAlgo := flag.String("algo", "dfs", "specify search algorithm")
@@ -48,7 +49,7 @@ func main() {
 	graphProblem := pixelsToGraph(pixels)
 
 	fmt.Println("Solving graph...")
-	solution, err := algos.GraphSeach(graphProblem, algorithm)
+	solution, err := algos.GraphSearch(graphProblem, algorithm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,6 +59,7 @@ func main() {
 	fmt.Println("Done!!!")
 }
 
+// pagalbinis metodas, įrašantis labirinto sprendimo kelią į png paveiksliuką
 func writeSolutionToFile(img image.Image, solution []*problems.Node) {
 	pathColor := color.RGBA{46, 225, 87, 255}
 	outputFile, err := os.Create("../img/output/maze_solution.png")
@@ -84,6 +86,7 @@ func writeSolutionToFile(img image.Image, solution []*problems.Node) {
 	png.Encode(outputFile, img)
 }
 
+// pagalbinis metodas, paverčiantis pateiktą png failą, pikselių matrica.
 func getPixels(img image.Image) ([][]Pixel, error) {
 	width, height := img.Bounds().Max.X, img.Bounds().Max.Y
 	var pixels [][]Pixel
@@ -99,6 +102,7 @@ func getPixels(img image.Image) ([][]Pixel, error) {
 	return pixels, nil
 }
 
+// metodas konvertuoja spalvų gamą į 8 bitų formatą ir gražina pikselio objektą
 func rgbaToPixel(r, g, b, a uint32) Pixel {
 	return Pixel{
 		R: int(r / 257),
@@ -108,6 +112,8 @@ func rgbaToPixel(r, g, b, a uint32) Pixel {
 	}
 }
 
+// metodas paverčia pateiktą pikselių matricą, grafu ir
+// gražina grafo paieškos uždavinio objektą
 func pixelsToGraph(pixels [][]Pixel) *problems.GraphProblem {
 	var graph = &problems.GraphProblem{}
 	var verticals = map[int]*problems.Node{}
@@ -177,6 +183,7 @@ func pixelsToGraph(pixels [][]Pixel) *problems.GraphProblem {
 	return graph
 }
 
+// pikselį atspindinti struktūra
 type Pixel struct {
 	R int
 	G int
@@ -192,7 +199,10 @@ func (p Pixel) IsBlack() bool {
 	return p.R == 0 && p.G == 0 && p.B == 0
 }
 
-// shouldPlaceNode checks if node is either in a corner or intersection
+// -----------------------------
+
+// shouldPlaceNode - pagalbinė funkciją, kuri tikrina
+// ar kelią atspindintis pikselis yra kampe abra sankryžoje
 func isDeadEndOrIntersection(left, right, top, bottom Pixel) bool {
 	wallCount := 0
 	hasHorizontalPath, hasVerticalPath := false, false
@@ -224,6 +234,7 @@ func isDeadEndOrIntersection(left, right, top, bottom Pixel) bool {
 	return wallCount == 3 || (hasHorizontalPath && hasVerticalPath)
 }
 
+// pagalbinė funkcija rūšiuojanti du kintamuosius
 func sort(n1, n2 int) (int, int) {
 	if n1 < n2 {
 		return n1, n2

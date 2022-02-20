@@ -6,13 +6,23 @@ import (
 	"example.com/maze-solver/pkg/problems"
 )
 
-func SearchStateSpace(problem problems.Problem, algo Algorithm) (map[string]problems.State, error) {
+// searchStateSpace - pagrindinė paieškos būsenų erdvėje funkcija.
+// Priima:
+//   1. Problem interfeisą,
+//   2. Algoritmo kurį naudos spendimui enumą
+// Gražina: aplankytų būsenų medį, išreikštą hashmap DS
+func searchStateSpace(problem problems.Problem, algo Algorithm) (map[string]problems.State, error) {
+	// Inicializuojamas paieškos masyvas
 	fringe := []problems.State{}
+	// Įdedama pradinė būsena
 	fringe = append(fringe, problem.GetInitialState())
+
+	// Inicializuojamas aplankytų būsenų hasmapas
 	explored := map[string]problems.State{}
 	explored[problem.GetInitialState().Describe()] = nil
 
 	solved := false
+	// iš paieškos masyvo, nuo paieškos algoritmo priklausančia tvarka, paimama būsena
 	for updatedFringe, current, err := takeFromFringe(fringe, algo); !solved; updatedFringe, current, err = takeFromFringe(fringe, algo) {
 		fringe = updatedFringe
 
@@ -20,36 +30,51 @@ func SearchStateSpace(problem problems.Problem, algo Algorithm) (map[string]prob
 			return nil, err
 		}
 
+		// gaunamas visų su gauta būsena galimų veiksmų sąrašas
 		actions, err := problem.GetPossibleActions(current)
 		if err != nil {
 			return nil, err
 		}
 
+		// keliaujama per galimų veiksmų sąraša
 		for _, action := range actions {
+			// gaunama iš dabartinei būsenai pritaikyto veiksmo kylanti būsena
 			resultingState, err := problem.GetResultingState(current, action)
 
 			if err != nil {
 				return nil, err
 			}
 
+			// tikrinama ar gauta būsena yra uždavinio galutinė būsena
+			// jeigu taip:
+			//   1. galutinė būsena įrašoma į aplankytų būsenų hashmapą
+			//   2. nutraukiami abu ciklai - paieška baigta
 			if resultingState.Describe() == problem.GetGoalState().Describe() {
 				explored[resultingState.Describe()] = current
 				solved = true
 				break
 			}
 
-			// patikrini ar gauta busena jau buvo aplankyta
+			// gauta būsena nėra galutinė, todėl tikriname ar ji jau buvo aplankyta
+			// jeigu ne:
+			//   1. į paieškos masyva pridedama atlikto veiksmo metu gauta būsena
+			//   2. aplankytų būsenų hashmape, pažymima iš kur buvo atkeliauta į šią būseną
 			if _, visited := explored[resultingState.Describe()]; !visited {
+
 				fringe = append(fringe, resultingState)
 				explored[resultingState.Describe()] = current
 			}
 		}
 	}
+
+	// gražinamas aplankytų būsenų hashmapas
 	return explored, nil
 }
 
-func GraphSeach(problem problems.Problem, algo Algorithm) ([]*problems.Node, error) {
-	explored, err := SearchStateSpace(problem, algo)
+// GraphSearch gauna prie galinės būsenos atvedusių tarpinių būsenų kombinaciją ir
+// paverčia jas grafo mazgais, kuriuos gražina
+func GraphSearch(problem problems.Problem, algo Algorithm) ([]*problems.Node, error) {
+	explored, err := searchStateSpace(problem, algo)
 	if err != nil {
 		return nil, err
 	}
@@ -62,10 +87,13 @@ func GraphSeach(problem problems.Problem, algo Algorithm) ([]*problems.Node, err
 	return solution, nil
 }
 
-func Graph_DJIKSTRA(problem problems.Problem) {
-	panic("Graph_DJIKSTRA not implemented")
+// Išsprendžia problemą, naudojant DIJKSTRA paieškos algoritmą
+func Graph_DIJKSTRA(problem problems.Problem) {
+	panic("Graph_DIJKSTRA not implemented")
 }
 
+// getSolutionNodes yra pagalbinė funkcija, argumentų sąraše priimanti problemą ir ištyrinėtą būsenų kelią ir
+// būsenų kelią paverčianti grafo mazgais, kuriuos jinai gražina vartotojui
 func getSolutionNodes(problem problems.Problem, explored map[string]problems.State) ([]*problems.Node, error) {
 	solution := make([]*problems.Node, 0)
 	current := problem.GetGoalState()
@@ -92,6 +120,8 @@ func getSolutionNodes(problem problems.Problem, explored map[string]problems.Sta
 	return solution, nil
 }
 
+//--- Paieškos algoritmo enumas -------
+
 type Algorithm byte
 
 const (
@@ -100,6 +130,7 @@ const (
 	ASTAR_SEARCH         Algorithm = 3
 )
 
+// String gražina paieškos algoritmo enumo tekstinę eilutę
 func (a Algorithm) String() string {
 	switch a {
 	case DEPTH_FIRST_SEARCH:
@@ -113,10 +144,27 @@ func (a Algorithm) String() string {
 	}
 }
 
-func addToFringe(fringe *[]problems.State, state problems.State) []problems.State {
-	return append(*fringe, state)
+// AlgoFromString pagalbinė funkcija, kuri vartotojui pateikus paieškos algoritmą apibūdinančią tekstinę eilutę,
+// gražina paieškos algoritmo enumą
+func AlgoFromString(str string) (Algorithm, error) {
+	switch str {
+	case DEPTH_FIRST_SEARCH.String():
+		return DEPTH_FIRST_SEARCH, nil
+	case BREADTH_FIRST_SEARCH.String():
+		return BREADTH_FIRST_SEARCH, nil
+	case ASTAR_SEARCH.String():
+		return ASTAR_SEARCH, nil
+	default:
+		return 0, errors.New("algorithm by this name not found")
+	}
 }
 
+//-------------------------------------
+
+// takeFromFringe - tai pagalbinė funkcija, kuri remdamasi pateiktu paieškos algoritmu simuliuoja tai paieškai
+// naudojamos duomenų struktūros elgseną, pvz.:
+// algoritmas DFS -> taikomi steko DS loginiai ribojimai
+// algoritmas BFS -> taikomi eilės DS loginiai ribojimai
 func takeFromFringe(fringe []problems.State, algo Algorithm) ([]problems.State, problems.State, error) {
 	l := len(fringe)
 	if l == 0 {
@@ -130,32 +178,5 @@ func takeFromFringe(fringe []problems.State, algo Algorithm) ([]problems.State, 
 		return fringe[1:], fringe[0], nil
 	default:
 		return nil, nil, errors.New("ASTAR_SEARCH fringe unimplemented")
-	}
-}
-
-func peekFringe(fringe []problems.State, algo Algorithm) (problems.State, error) {
-	l := len(fringe)
-	if l == 0 {
-		return nil, errors.New("fringe is empty")
-	}
-
-	switch algo {
-	case DEPTH_FIRST_SEARCH:
-		return fringe[l-1], nil
-	case BREADTH_FIRST_SEARCH:
-		return fringe[0], nil
-	default:
-		return nil, errors.New("ASTAR_SEARCH fringe not yet implemented")
-	}
-}
-
-func AlgoFromString(str string) (Algorithm, error) {
-	switch str {
-	case DEPTH_FIRST_SEARCH.String():
-		return DEPTH_FIRST_SEARCH, nil
-	case BREADTH_FIRST_SEARCH.String():
-		return BREADTH_FIRST_SEARCH, nil
-	default:
-		return 0, errors.New("algorithm by this name not found")
 	}
 }

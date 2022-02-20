@@ -18,6 +18,7 @@ type State interface {
 	Describe() string
 }
 
+// Būsenų erdvės paieškos uždavinio interfeisas
 type Problem interface {
 	GetInitialState() State
 	GetGoalState() State
@@ -25,6 +26,7 @@ type Problem interface {
 	GetPossibleActions(state State) ([]Action, error)
 }
 
+// Labirinto grafo mazgas, kuris įgyvendina State interfeisą
 type Node struct {
 	X, Y        int
 	Connections []*Node
@@ -34,19 +36,23 @@ func (n Node) Describe() string {
 	return fmt.Sprintf("%d;%d", n.X, n.Y)
 }
 
+// Problem interfeisą implementinanti struktūra
 type GraphProblem struct {
 	Initial Node
 	Goal    Node
 }
 
+// metodas gražinantis pradinę problemos būseną
 func (p GraphProblem) GetInitialState() State {
 	return p.Initial
 }
 
+// metodas gražinantis siekiamą problemos būseną
 func (p GraphProblem) GetGoalState() State {
 	return p.Goal
 }
 
+// metodas, gražinantis būseną, kuri gaunama pateiktai būsenai pritaikius pateiktą veiksmą
 func (p GraphProblem) GetResultingState(state State, action Action) (State, error) {
 	node, err := GraphNodeFromState(state)
 	if err != nil {
@@ -56,6 +62,7 @@ func (p GraphProblem) GetResultingState(state State, action Action) (State, erro
 	return child, err
 }
 
+// metodas, gražinantis su pateikta būsena galimus atlikti veiksmus
 func (p GraphProblem) GetPossibleActions(state State) ([]Action, error) {
 	node, err := GraphNodeFromState(state)
 	if err != nil {
@@ -75,6 +82,8 @@ func (p GraphProblem) GetPossibleActions(state State) ([]Action, error) {
 	return actions, nil
 }
 
+// connectionToAction - pagalbinė funkcija, gražinanti veiksmą,
+// kurį naudojant galima gauti gretimą mazgą
 func connectionToAction(node Node, connection Node) (Action, error) {
 	switch {
 	case connection.X == node.X && connection.Y < node.Y:
@@ -90,6 +99,8 @@ func connectionToAction(node Node, connection Node) (Action, error) {
 	}
 }
 
+// actionToConnection - pagalbinė funkcija, gražinanti gretimą mazgą,
+// kuris gaunamas einamajam mazgui pritaikius veiksmą
 func actionToConnection(node Node, action Action) (Node, error) {
 	for _, connection := range node.Connections {
 		connectionPos, err := connectionToAction(node, *connection)
@@ -103,6 +114,7 @@ func actionToConnection(node Node, action Action) (Node, error) {
 	return Node{}, errors.New("chould not find state that corresponds to your given action")
 }
 
+// metodas, kuris konkretizuoja pateiktą būseną ir gražina grafo mazgą (jeigu galima)
 func GraphNodeFromState(state State) (Node, error) {
 	node, ok := state.(Node)
 	if !ok {
