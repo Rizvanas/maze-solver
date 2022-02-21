@@ -5,38 +5,6 @@ import (
 	"fmt"
 )
 
-type Action byte
-
-const (
-	UP    Action = 1
-	DOWN  Action = 2
-	LEFT  Action = 3
-	RIGHT Action = 4
-)
-
-type State interface {
-	Describe() string
-}
-
-// Būsenų erdvės paieškos uždavinio interfeisas
-type Problem interface {
-	GetInitialState() State
-	GetGoalState() State
-	GetResultingState(state State, action Action) (State, error)
-	GetPossibleActions(state State) ([]Action, error)
-}
-
-// Labirinto grafo mazgas, kuris įgyvendina State interfeisą
-type Node struct {
-	X, Y        int
-	Connections []*Node
-}
-
-func (n Node) Describe() string {
-	return fmt.Sprintf("%d;%d", n.X, n.Y)
-}
-
-// Problem interfeisą implementinanti struktūra
 type GraphProblem struct {
 	Initial Node
 	Goal    Node
@@ -82,6 +50,15 @@ func (p GraphProblem) GetPossibleActions(state State) ([]Action, error) {
 	return actions, nil
 }
 
+// metodas, kuris konkretizuoja pateiktą būseną ir gražina grafo mazgą (jeigu galima)
+func GraphNodeFromState(state State) (Node, error) {
+	node, ok := state.(Node)
+	if !ok {
+		return node, fmt.Errorf("error in GraphProblem.GetpossibleActions takes Node, but received %T", state)
+	}
+	return node, nil
+}
+
 // connectionToAction - pagalbinė funkcija, gražinanti veiksmą,
 // kurį naudojant galima gauti gretimą mazgą
 func connectionToAction(node Node, connection Node) (Action, error) {
@@ -112,13 +89,4 @@ func actionToConnection(node Node, action Action) (Node, error) {
 		}
 	}
 	return Node{}, errors.New("chould not find state that corresponds to your given action")
-}
-
-// metodas, kuris konkretizuoja pateiktą būseną ir gražina grafo mazgą (jeigu galima)
-func GraphNodeFromState(state State) (Node, error) {
-	node, ok := state.(Node)
-	if !ok {
-		return node, fmt.Errorf("error in GraphProblem.GetpossibleActions takes Node, but received %T", state)
-	}
-	return node, nil
 }
