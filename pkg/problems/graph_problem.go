@@ -3,6 +3,7 @@ package problems
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 type GraphProblem struct {
@@ -50,6 +51,38 @@ func (p GraphProblem) GetPossibleActions(state State) ([]Action, error) {
 	return actions, nil
 }
 
+func (p GraphProblem) GetActionCost(state State, action Action) (float64, error) {
+	result, err := p.GetResultingState(state, action)
+	if err != nil {
+		return 0, err
+	}
+
+	node1, err := GraphNodeFromState(state)
+	if err != nil {
+		return 0, err
+	}
+
+	node2, err := GraphNodeFromState(result)
+	if err != nil {
+		return 0, err
+	}
+
+	return distanceBetweenNodes(node1, node2), nil
+}
+
+func (p GraphProblem) CalculateCostToGoal(state State) (float64, error) {
+	current, err := GraphNodeFromState(state)
+	if err != nil {
+		return 0.0, nil
+	}
+
+	goalX, goalY := p.Goal.X, p.Goal.Y
+	currentX, currentY := current.X, current.Y
+	deltaX, deltaY := goalX-currentX, goalY-currentY
+
+	return math.Sqrt(float64(deltaX*deltaX + deltaY*deltaY)), nil
+}
+
 // metodas, kuris konkretizuoja pateiktą būseną ir gražina grafo mazgą (jeigu galima)
 func GraphNodeFromState(state State) (Node, error) {
 	node, ok := state.(Node)
@@ -89,4 +122,8 @@ func actionToConnection(node Node, action Action) (Node, error) {
 		}
 	}
 	return Node{}, errors.New("chould not find state that corresponds to your given action")
+}
+
+func distanceBetweenNodes(node1 Node, node2 Node) float64 {
+	return math.Abs(float64(node1.X-node2.X)) + math.Abs(float64(node1.Y-node2.Y))
 }

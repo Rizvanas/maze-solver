@@ -10,8 +10,8 @@ import (
 
 // programos entry point (įeigos taškas)
 func main() {
-	mazeName := flag.String("maze", "perfect4k.png", "specify maze name")
-	searchAlgo := flag.String("algo", "dfs", "specify search algorithm")
+	mazeName := flag.String("maze", "small.png", "specify maze name")
+	searchAlgo := flag.String("algo", "astar", "specify search algorithm")
 	flag.Parse()
 
 	algorithm, err := algos.AlgoFromString(*searchAlgo)

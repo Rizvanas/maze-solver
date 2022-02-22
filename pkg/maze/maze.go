@@ -48,11 +48,20 @@ func New(filename string) *Maze {
 }
 
 func (maze *Maze) Solve(algo algos.Algorithm) {
-	solution, err := algos.GraphSearch(maze.graph, algo)
+	fmt.Println("Finding Exit...")
+	var solution []*problems.Node = nil
+	var err error
+	switch algo {
+	case algos.ASTAR_SEARCH:
+		solution, err = algos.Astar(maze.graph)
+	default:
+		solution, err = algos.GraphSearch(maze.graph, algo)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
 	maze.Solution = solution
+	fmt.Println("Exit found!!!")
 }
 
 func (maze Maze) SaveToFile(filename string) {

@@ -20,5 +20,7 @@ type Problem interface {
 	GetInitialState() State
 	GetGoalState() State
 	GetResultingState(state State, action Action) (State, error)
+	GetActionCost(state State, action Action) (float64, error)
 	GetPossibleActions(state State) ([]Action, error)
+	CalculateCostToGoal(state State) (float64, error)
 }

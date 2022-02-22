@@ -87,11 +87,6 @@ func GraphSearch(problem problems.Problem, algo Algorithm) ([]*problems.Node, er
 	return solution, nil
 }
 
-// Išsprendžia problemą, naudojant DIJKSTRA paieškos algoritmą
-func Graph_DIJKSTRA(problem problems.Problem) {
-	panic("Graph_DIJKSTRA not implemented")
-}
-
 // getSolutionNodes yra pagalbinė funkcija, argumentų sąraše priimanti problemą ir ištyrinėtą būsenų kelią ir
 // būsenų kelią paverčianti grafo mazgais, kuriuos jinai gražina vartotojui
 func getSolutionNodes(problem problems.Problem, explored map[string]problems.State) ([]*problems.Node, error) {
